@@ -6,6 +6,7 @@ import LoginPage from "./pages/Login";
 import ProductList from "./pages/Products";
 import ProductForm from "./pages/ProductForm";
 import SupplierList from "./pages/Suppliers";
+import ProtectedRoute from './components/ProtectedRoute';
 import './styles.css';
 
 function App(){
@@ -15,9 +16,9 @@ function App(){
         <Route path="/login" element={<LoginPage/>} />
         <Route path="/" element={<Layout/>}>
           <Route index element={<ProductList/>} />
-          <Route path="products/new" element={<ProductForm/>} />
-          <Route path="products/:id/edit" element={<ProductForm/>} />
-          <Route path="suppliers" element={<SupplierList/>} />
+          <Route path="products/new" element={<ProtectedRoute><ProductForm/></ProtectedRoute>} />
+          <Route path="products/:id/edit" element={<ProtectedRoute><ProductForm/></ProtectedRoute>} />
+          <Route path="suppliers" element={<ProtectedRoute><SupplierList/></ProtectedRoute>} />
         </Route>
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
