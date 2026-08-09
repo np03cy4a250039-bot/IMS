@@ -38,18 +38,22 @@ export default function Products(){
         </div>
       </div>
       <div className="grid">
-        {products.map(p=> (
-          <div className={`card ${p.quantity<5? 'low':''}`} key={p.id}>
-            <img src={p.imageUrl || '/placeholder.png'} alt="" />
-            <h3>{p.name} <LowStockBadge q={p.quantity} /></h3>
-            <p>Supplier: {p.Supplier?.name}</p>
-            <p>Price: ${p.price} Qty: {p.quantity}</p>
-            <div className="actions">
-              <button onClick={()=>navigate(`/products/${p.id}`)}>View</button>
-              {token && <><button onClick={()=>goEdit(p.id)}>Edit</button><button onClick={()=>remove(p.id)}>Delete</button></>}
+        {products.map(p=> {
+          const apiRoot = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/,'');
+          const img = p.imageUrl ? (p.imageUrl.startsWith('http') ? p.imageUrl : `${apiRoot}${p.imageUrl}`) : '/placeholder.png';
+          return (
+            <div className={`card ${p.quantity<5? 'low':''}`} key={p.id}>
+              <img src={img} alt="" />
+              <h3>{p.name} <LowStockBadge q={p.quantity} /></h3>
+              <p>Supplier: {p.Supplier?.name}</p>
+              <p>Price: ${p.price} Qty: {p.quantity}</p>
+              <div className="actions">
+                <button onClick={()=>navigate(`/products/${p.id}`)}>View</button>
+                {token && <><button onClick={()=>goEdit(p.id)}>Edit</button><button onClick={()=>remove(p.id)}>Delete</button></>}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   );
