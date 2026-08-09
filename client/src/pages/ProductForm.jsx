@@ -22,9 +22,9 @@ export default function ProductForm(){
   async function submit(e){ e.preventDefault(); setError(null); const v = validate(); if(v){ setError(v); return; }
     const data = new FormData(); data.append('name', form.name); data.append('sku', form.sku); data.append('price', form.price); data.append('quantity', form.quantity); data.append('supplierId', form.supplierId); if(form.image) data.append('image', form.image);
     try {
-      const headers = token? { Authorization:`Bearer ${token}` } : {};
-      if(id) await API.put(`/products/${id}`, data, { headers, headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
-      else await API.post('/products', data, { headers, headers: { ...headers, 'Content-Type': 'multipart/form-data' } });
+      const hdrs = { 'Content-Type': 'multipart/form-data' };
+      if(id) await API.put(`/products/${id}`, data, { headers: hdrs });
+      else await API.post('/products', data, { headers: hdrs });
       navigate('/');
     } catch (err){ setError(err.response?.data?.error || 'Save failed'); }
   }
