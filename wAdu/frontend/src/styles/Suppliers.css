@@ -1,0 +1,104 @@
+.suppliers-container {
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.suppliers-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.suppliers-header h2 {
+  color: #333;
+  margin: 0;
+}
+
+.add-btn {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.add-btn:hover {
+  background-color: #5568d3;
+}
+
+.error-message {
+  background-color: #fee;
+  color: #c33;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #c33;
+}
+
+.supplier-form {
+  background-color: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.supplier-form input {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.supplier-form button {
+  background-color: #667eea;
+  color: white;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.supplier-form button:hover {
+  background-color: #5568d3;
+}
+
+.suppliers-table {
+  overflow-x: auto;
+}
+
+.suppliers-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.suppliers-table thead {
+  background-color: #f9f9f9;
+}
+
+.suppliers-table th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.suppliers-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #ddd;
+  color: #666;
+}
+
+.suppliers-table tr:hover {
+  background-color: #f9f9f9;
+}
