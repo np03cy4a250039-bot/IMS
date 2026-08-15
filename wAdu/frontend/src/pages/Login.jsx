@@ -16,12 +16,8 @@ function Login({ onLogin }) {
 
     try {
       const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login'
-      const response = await axios.post(endpoint, { username, password })
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token)
-        onLogin(response.data.token)
-      }
+      await axios.post(endpoint, { username, password }, { withCredentials: true })
+      onLogin()
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred')
     } finally {
