@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { api } from '../api/client'
 import '../styles/Suppliers.css'
 
-function Suppliers({ token }) {
+function emptyForm() {
+  return {
+    name: '',
+    email: '',
+    phone: '',
+  }
+}
+
+function Suppliers() {
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-  })
+  const [formData, setFormData] = useState(emptyForm())
+  const [editingId, setEditingId] = useState(null)
 
   useEffect(() => {
     fetchSuppliers()
@@ -20,9 +25,7 @@ function Suppliers({ token }) {
   const fetchSuppliers = async () => {
     setLoading(true)
     try {
-      const response = await axios.get('/api/suppliers', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const response = await api.getSuppliers()
       setSuppliers(response.data)
     } catch (err) {
       setError('Failed to fetch suppliers')
@@ -31,22 +34,52 @@ function Suppliers({ token }) {
     }
   }
 
-  const handleAddSupplier = async (e) => {
-    e.preventDefault()
+  const resetForm = () => {
+    setFormData(emptyForm())
+    setEditingId(null)
+  }
+
+  const handleEdit = (supplier) => {
+    setFormData({
+      name: supplier.name || '',
+      email: supplier.email || '',
+      phone: supplier.phone || '',
+    })
+    setEditingId(supplier.id)
+    setShowForm(true)
+  }
+
+  const handleDelete = async (supplier) => {
+    if (!confirm(`Delete supplier "${supplier.name}"?`)) return
     try {
-      await axios.post('/api/suppliers', formData, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-      })
+      await api.deleteSupplier(supplier.id)
+      fetchSuppliers()
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to delete supplier')
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    try {
+      if (editingId) {
+        await api.updateSupplier(editingId, formData)
+      } else {
+        await api.createSupplier(formData)
+      }
+      resetForm()
       setShowForm(false)
       fetchSuppliers()
     } catch (err) {
-      setError('Failed to add supplier')
+      setError(err.response?.data?.error || 'Failed to save supplier')
     }
+  }
+
+  const cancelForm = () => {
+    resetForm()
+    setShowForm(false)
   }
 
   return (
@@ -55,7 +88,10 @@ function Suppliers({ token }) {
         <h2>Suppliers</h2>
         <button
           className="add-btn"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            resetForm()
+            setShowForm(!showForm)
+          }}
         >
           {showForm ? 'Cancel' : 'Add Supplier'}
         </button>
@@ -64,7 +100,10 @@ function Suppliers({ token }) {
       {error && <div className="error-message">{error}</div>}
 
       {showForm && (
-        <form className="supplier-form" onSubmit={handleAddSupplier}>
+        <form className="supplier-form" onSubmit={handleSubmit}>
+          <h3 className="form-title">
+            {editingId ? 'Edit Supplier' : 'New Supplier'}
+          </h3>
           <input
             type="text"
             placeholder="Supplier Name"
@@ -84,7 +123,14 @@ function Suppliers({ token }) {
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
-          <button type="submit">Add Supplier</button>
+          <div className="form-actions">
+            <button type="submit">
+              {editingId ? 'Update Supplier' : 'Add Supplier'}
+            </button>
+            <button type="button" className="cancel-btn" onClick={cancelForm}>
+              Cancel
+            </button>
+          </div>
         </form>
       )}
 
@@ -100,6 +146,7 @@ function Suppliers({ token }) {
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -108,6 +155,14 @@ function Suppliers({ token }) {
                   <td>{supplier.name}</td>
                   <td>{supplier.email || '-'}</td>
                   <td>{supplier.phone || '-'}</td>
+                  <td className="actions-cell">
+                    <button className="edit-btn" onClick={() => handleEdit(supplier)}>
+                      Edit
+                    </button>
+                    <button className="delete-btn" onClick={() => handleDelete(supplier)}>
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
