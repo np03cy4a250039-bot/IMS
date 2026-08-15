@@ -5,27 +5,46 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('token'))
-  const [user, setUser] = useState(null)
+  const [userId, setUserId] = useState(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (token) {
-      setUser({ token })
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get('/api/auth/me', { withCredentials: true })
+        setUserId(response.data.userId)
+      } catch {
+        setUserId(null)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [token])
+    checkAuth()
+  }, [])
 
-  const handleLogout = () => {
-    setToken(null)
-    localStorage.removeItem('token')
-    setUser(null)
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/logout', {}, { withCredentials: true })
+    } catch {
+      // ignore
+    }
+    setUserId(null)
+  }
+
+  const handleLogin = () => {
+    checkAuth()
+  }
+
+  if (loading) {
+    return <div className="app-loading">Loading...</div>
   }
 
   return (
     <div className="App">
-      {token ? (
-        <Dashboard token={token} onLogout={handleLogout} />
+      {userId ? (
+        <Dashboard userId={userId} onLogout={handleLogout} />
       ) : (
-        <Login onLogin={setToken} />
+        <Login onLogin={handleLogin} />
       )}
     </div>
   )
