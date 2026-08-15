@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const path = require('path');
 require('dotenv').config();
 
@@ -10,10 +11,12 @@ const supplierRoutes = require('./routes/suppliers');
 
 const app = express();
 
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
+
 // Middleware
-app.use(cors());
+app.use(cors({ origin: FRONTEND_ORIGIN, credentials: true }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'uploads')));
+app.use(cookieParser());
 
 // Initialize database on startup
 initDB().catch(err => {
