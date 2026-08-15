@@ -2,6 +2,13 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  maxAge: 24 * 60 * 60 * 1000,
+};
+
 exports.register = async (req, res) => {
   try {
     const { username, password, registerSecret } = req.body;
@@ -26,6 +33,8 @@ exports.register = async (req, res) => {
       [username, hashedPassword]
     );
 
+    const token = jwt.sign({ userId: result.rows[0].id }, process.env.JWT_SECRET, { expiresIn: '24h' });
+    res.cookie('token', token, COOKIE_OPTIONS);
     res.status(201).json({ message: 'User registered successfully', user: result.rows[0] });
   } catch (error) {
     console.error('Register error:', error);
@@ -53,9 +62,15 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '24h' });
-    res.json({ message: 'Login successful', token, userId: user.id });
+    res.cookie('token', token, COOKIE_OPTIONS);
+    res.json({ message: 'Login successful', userId: user.id });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error' });
   }
+};
+
+exports.logout = (req, res) => {
+  res.clearCookie('token', { ...COOKIE_OPTIONS, maxAge: 0 });
+  res.json({ message: 'Logged out successfully' });
 };
