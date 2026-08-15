@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { useState } from 'react'
 import '../styles/Dashboard.css'
 import Products from './Products'
 import Suppliers from './Suppliers'
 
-function Dashboard({ token, onLogout }) {
+function Dashboard({ userId, onLogout }) {
   const [activeTab, setActiveTab] = useState('products')
 
   return (
@@ -24,6 +23,7 @@ function Dashboard({ token, onLogout }) {
           >
             Suppliers
           </button>
+          <span className="user-info">User: {userId}</span>
           <button className="logout-btn" onClick={onLogout}>
             Logout
           </button>
@@ -31,8 +31,8 @@ function Dashboard({ token, onLogout }) {
       </nav>
 
       <div className="content">
-        {activeTab === 'products' && <Products token={token} />}
-        {activeTab === 'suppliers' && <Suppliers token={token} />}
+        {activeTab === 'products' && <Products />}
+        {activeTab === 'suppliers' && <Suppliers />}
       </div>
     </div>
   )
