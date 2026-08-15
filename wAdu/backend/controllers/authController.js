@@ -4,10 +4,15 @@ const pool = require('../db');
 
 exports.register = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, registerSecret } = req.body;
 
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    const requiredSecret = process.env.REGISTER_SECRET;
+    if (requiredSecret && registerSecret !== requiredSecret) {
+      return res.status(403).json({ error: 'Invalid registration secret' });
     }
 
     const userExists = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
