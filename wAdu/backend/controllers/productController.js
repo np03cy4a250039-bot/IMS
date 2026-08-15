@@ -1,5 +1,6 @@
 const pool = require('../db');
 const path = require('path');
+const fs = require('fs');
 
 exports.getAllProducts = async (req, res) => {
   try {
@@ -57,7 +58,6 @@ exports.createProduct = async (req, res) => {
   try {
     const { name, description, price, quantity, supplier_id } = req.body;
 
-    // Validation
     if (!name || price === undefined || quantity === undefined) {
       return res.status(400).json({ error: 'Name, price, and quantity are required' });
     }
@@ -75,7 +75,7 @@ exports.createProduct = async (req, res) => {
       `INSERT INTO products (name, description, price, quantity, supplier_id, image_url) 
        VALUES ($1, $2, $3, $4, $5, $6) 
        RETURNING *`,
-      [name, description || null, price, quantity, supplier_id || null, image_url]
+      [name, description ?? null, price, quantity, supplier_id ?? null, image_url]
     );
 
     res.status(201).json({ message: 'Product created successfully', product: result.rows[0] });
@@ -90,7 +90,6 @@ exports.updateProduct = async (req, res) => {
     const { id } = req.params;
     const { name, description, price, quantity, supplier_id } = req.body;
 
-    // Validation
     if (price !== undefined && price < 0) {
       return res.status(400).json({ error: 'Price cannot be negative' });
     }
@@ -99,15 +98,24 @@ exports.updateProduct = async (req, res) => {
       return res.status(400).json({ error: 'Quantity cannot be negative' });
     }
 
-    // Get existing product
     const existingProduct = await pool.query('SELECT * FROM products WHERE id = $1', [id]);
     if (existingProduct.rows.length === 0) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    let image_url = existingProduct.rows[0].image_url;
+    const oldImageUrl = existingProduct.rows[0].image_url;
+    let image_url = oldImageUrl;
+
     if (req.file) {
       image_url = `/uploads/${req.file.filename}`;
+      if (oldImageUrl) {
+        const oldFilePath = path.join(__dirname, '..', oldImageUrl);
+        fs.unlink(oldFilePath, (err) => {
+          if (err && err.code !== 'ENOENT') {
+            console.error('Failed to delete old image:', err);
+          }
+        });
+      }
     }
 
     const result = await pool.query(
@@ -121,7 +129,7 @@ exports.updateProduct = async (req, res) => {
            updated_at = CURRENT_TIMESTAMP
        WHERE id = $7 
        RETURNING *`,
-      [name || null, description || null, price || null, quantity || null, supplier_id || null, image_url, id]
+      [name ?? null, description ?? null, price ?? null, quantity ?? null, supplier_id ?? null, image_url, id]
     );
 
     res.json({ message: 'Product updated successfully', product: result.rows[0] });
@@ -134,10 +142,23 @@ exports.updateProduct = async (req, res) => {
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const existingProduct = await pool.query('SELECT image_url FROM products WHERE id = $1', [id]);
+    if (existingProduct.rows.length === 0) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const oldImageUrl = existingProduct.rows[0].image_url;
+
     const result = await pool.query('DELETE FROM products WHERE id = $1 RETURNING id', [id]);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Product not found' });
+    if (oldImageUrl) {
+      const oldFilePath = path.join(__dirname, '..', oldImageUrl);
+      fs.unlink(oldFilePath, (err) => {
+        if (err && err.code !== 'ENOENT') {
+          console.error('Failed to delete image on product deletion:', err);
+        }
+      });
     }
 
     res.json({ message: 'Product deleted successfully' });
