@@ -1,5 +1,4 @@
 const pool = require('./db');
-
 const initDB = async () => {
   const client = await pool.connect();
   try {
